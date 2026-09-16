@@ -155,9 +155,25 @@ Whether a patch edit takes effect *without a restart* depends on the host:
 - Under the CLI (`dsh profile`), `runProfile` installs an HMR service and
   registers the profile and user patch files with it, so patch edits are applied
   live.
-- Under **DSH Desktop 2.0.3** that path is not taken — the desktop shell
-  composes the profile itself (`dsh-app-boot` helpers) and never loads
-  `cordis-plugin-hmr`, so a `cordis.patch.yml` edit needs a profile restart.
+- Under **DSH Desktop** that path is not taken — the desktop shell composes the
+  profile itself (`dsh-app-boot` helpers) and never loads `cordis-plugin-hmr`,
+  so a `cordis.patch.yml` edit needs a profile restart.
 
 Edits to `lib/*.js` always need a restart: the dsh HMR service is created with
 `root: []`, so no source directory is watched for module replacement.
+
+## Development
+
+`src/` holds the sources; `lib/` holds what npm publishes and what a profile
+loads. Nothing derives one from the other at install time, so the copy is
+explicit and checked:
+
+```sh
+npm install
+npm run build     # src/ -> lib/
+npm run check     # fails when the two differ
+npm test          # vitest, against src/
+```
+
+`prepublishOnly` runs `check` then `test`, so a stale `lib/` cannot be
+published. CI runs the same steps plus a pack assertion.

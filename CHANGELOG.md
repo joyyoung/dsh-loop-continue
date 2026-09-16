@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `npm run build` copies `src/` to `lib/`, and `npm run check` fails when the
+  two differ. The tests exercise `src/` while npm publishes `lib/`, and nothing
+  derived one from the other at install time, so a forgotten copy would have
+  shipped stale code behind a green test run. `prepublishOnly` runs the check
+  and the tests.
+
+- A CI workflow runs the sync check, the tests, and a pack assertion on every
+  push and pull request.
+
+### Fixed
+
+- The dev dependencies are pinned exactly. The host-provided peers were only
+  reachable as ranges no registry resolution can satisfy: node-semver admits a
+  prerelease only inside its own `major.minor.patch` tuple, so `^0.1.1-rc.2`
+  excludes `0.1.5-rc.2`.
+
 ## 0.2.0
 
 ### Added

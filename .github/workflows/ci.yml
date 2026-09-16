@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # A lockfile is committed, so this resolves the exact tree the author
+      # tested. The host-provided peers are pinned in devDependencies: their
+      # `^0.1.1-rc.2` ranges cannot be satisfied from the registry, since
+      # node-semver admits a prerelease only inside the matching version tuple.
+      - run: npm ci
+
+      # Tests import src/, the publish ships lib/. A forgotten rebuild would
+      # otherwise pass here and ship stale code.
+      - name: Bundles match their sources
+        run: npm run check
+
+      - name: Tests
+        run: npm test
+
+      - name: Tarball contains the client bundle
+        run: |
+          npm pack --dry-run 2>&1 | tee /tmp/pack.txt
+          grep -q 'lib/client.js' /tmp/pack.txt
