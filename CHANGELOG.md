@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
+
+### Changed
+
+- **DSH 0.1.7 客户端迁移：设置卡片从 Settings 页移到 Plugins 页的 bundle
+  配置槽。** 0.1.7 用 `configForms` 服务取代了 `settingsScope`，可配置页签槽
+  `settings.plugin.item` 移到了 bundle 配置槽 `plugins.bundle.config` 上。卡片
+  现在通过 `ctx.configForms.get(NAMESPACE)` 一次性取得表单句柄，再经注册的
+  `inject` 面传给卡片；`configForms.whileServed` 仍在宿主服务于该命名空间时
+  挂载入口，保留 0.1.7 之前的绑定守卫语义。
 
 ### Added
 

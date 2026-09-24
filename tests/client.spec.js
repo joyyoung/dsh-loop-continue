@@ -60,7 +60,7 @@ function loadBundle() {
   return bundlePromise
 }
 
-/** Build a fake settings scope that records its writes. */
+/** Build a fake config form that records its writes. */
 function createScope(initial) {
   const calls = []
   const stored = { ...initial }
@@ -97,13 +97,17 @@ async function mount(initial = STORED) {
 
   let card = null
   mod.apply({
-    effect: () => {},
-    inject: (_deps, fn) => fn({
-      settingsScope: { bind: () => scope },
-      slots: { inject: (_name, inner) => inner(), register: (_opts, factory) => { card = factory } },
-    }),
+    effect: (_fn, label) => { if (label.includes('bundle config')) _fn() },
+    configForms: {
+      get: () => scope,
+      whileServed: (_ns, fn) => fn(),
+    },
+    slots: {
+      inject: (_name, inner) => inner(),
+      register: (opts, component) => { card = () => ({ type: component, props: { ...opts.inject() } }) },
+    },
   })
-  expect(card, 'the card must register into settings.plugin.item').not.toBeNull()
+  expect(card, 'the card must register into plugins.bundle.config').not.toBeNull()
 
   const read = () => {
     const out = []
@@ -158,11 +162,15 @@ describe('settings card', () => {
     const { scope } = createScope(STORED)
     let card = null
     mod.apply({
-      effect: () => {},
-      inject: (_deps, fn) => fn({
-        settingsScope: { bind: () => scope },
-        slots: { inject: (_n, inner) => inner(), register: (_o, factory) => { card = factory } },
-      }),
+      effect: (_fn, label) => { if (label.includes('bundle config')) _fn() },
+      configForms: {
+        get: () => scope,
+        whileServed: (_ns, fn) => fn(),
+      },
+      slots: {
+        inject: (_n, inner) => inner(),
+        register: (opts, component) => { card = () => ({ type: component, props: { ...opts.inject() } }) },
+      },
     })
 
     const read = () => {
